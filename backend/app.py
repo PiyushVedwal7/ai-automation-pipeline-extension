@@ -101,16 +101,29 @@ Output: {{ "action": "fetch_comments", "video_id": "abc123" }}
 
 Now process: "{user_command}"
 """
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
-        payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
-        try:
-            response = requests.post(url, json=payload)
-            result = response.json()
-            reply = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "{}")
-            cleaned_reply = re.sub(r"```(?:json)?\n(.*?)\n```", r"\1", reply, flags=re.DOTALL)
-            command_json = json.loads(cleaned_reply)
-        except Exception as e:
-            return jsonify({"error": f"Gemini API request failed: {str(e)}"})
+     url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={API_KEY}"
+payload = {
+    "contents": [
+        {
+            "parts": [
+                {"text": prompt}
+            ]
+        }
+    ]
+}
+try:
+    response = requests.post(url, json=payload)
+    result = response.json()
+
+    reply = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "{}")
+
+    cleaned_reply = re.sub(r"```(?:json)?\n(.*?)\n```", r"\1", reply, flags=re.DOTALL)
+
+    command_json = json.loads(cleaned_reply)
+
+except Exception as e:
+    return jsonify({"error": f"Gemini API request failed: {str(e)}"})
+
 
     action = command_json.get("action")
     video_id = command_json.get("video_id")
